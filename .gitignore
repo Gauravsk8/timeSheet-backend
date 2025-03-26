@@ -1,0 +1,22 @@
+# Ignore compiled Java classes
+*.class
+
+# Ignore Maven / Gradle build files
+target/
+*.jar
+
+# Ignore database volume
+postgres-data/
+
+# Ignore IDE files
+.idea/
+.vscode/
+*.iml
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore logs
+logs/
+*.log
