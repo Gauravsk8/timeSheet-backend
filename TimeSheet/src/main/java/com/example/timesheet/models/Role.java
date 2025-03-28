@@ -28,4 +28,13 @@ public class Role extends  BaseEntity {
     )
     @OrderBy("sortOrder")
     private Set<Privilege> privileges=new LinkedHashSet<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "employee_roles",
+            joinColumns = @JoinColumn(name = "role_id"),
+            inverseJoinColumns = @JoinColumn(name = "employee_id")
+    )
+    private Set<Employee> employees = new LinkedHashSet<>();
+
 }

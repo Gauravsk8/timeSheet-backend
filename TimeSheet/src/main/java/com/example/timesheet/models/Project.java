@@ -28,6 +28,10 @@ public class Project extends BaseEntity{
     private Time end_date;
 
     @ManyToOne
+    @JoinColumn(name="client_id",nullable = false)
+    private Client client;
+
+    @ManyToOne
     @JoinColumn(name="employeeId",nullable = false)
     private Employee manager;
 
