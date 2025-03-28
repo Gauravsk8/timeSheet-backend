@@ -1,4 +1,4 @@
-package com.example.timesheet.framework.utils;
+package com.example.timesheet.framework.web.utils;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import lombok.Getter;

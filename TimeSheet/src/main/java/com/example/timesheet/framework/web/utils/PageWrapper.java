@@ -1,4 +1,4 @@
-package com.example.timesheet.framework.utils;
+package com.example.timesheet.framework.web.utils;
 
 
 import org.springframework.data.domain.PageImpl;
