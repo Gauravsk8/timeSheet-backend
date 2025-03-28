@@ -1,7 +1,7 @@
 package com.example.timesheet.framework.service;
 
 import com.example.timesheet.Repository.BaseRepository;
-import com.example.timesheet.framework.utils.PageRequest;
+import com.example.timesheet.framework.web.utils.PageRequest;
 import com.example.timesheet.framework.web.utils.PageWrapper;
 import com.example.timesheet.utils.framewrork.exceptions.InvalidClientDataException;
 import com.fasterxml.jackson.databind.JsonNode;

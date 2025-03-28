@@ -2,7 +2,6 @@ package com.example.timesheet.models;
 
 import com.example.timesheet.Repository.EmployeeRepository;
 import com.example.timesheet.Repository.Projection.EmployeeProjection;
-import com.example.timesheet.Repository.UserRepository;
 import com.example.timesheet.enums.EmployeePrivilege;
 import com.example.timesheet.framework.utils.SpringContext;
 import com.fasterxml.jackson.annotation.JsonIgnore;
