@@ -27,7 +27,7 @@ public class WeeklyTimeSheet extends BaseEntity {
     @Column(name = "total_week_hours", nullable = false)
     private Double totalWeekHours = 0.0;
 
-    @OneToMany(mappedBy = "weeklyTimesheet", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "weeklyTimeSheet", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<DailyTimeSheet> dailyTimeSheets = new LinkedHashSet<>();
 
     @OneToOne(mappedBy = "weeklyTimesheet", cascade = CascadeType.ALL, orphanRemoval = true)

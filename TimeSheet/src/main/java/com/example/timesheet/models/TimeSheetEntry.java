@@ -2,10 +2,20 @@ package com.example.timesheet.models;
 
 import com.example.timesheet.enums.TaskType;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.envers.Audited;
+
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@Audited
 public class TimeSheetEntry extends BaseEntity{
 
     @ManyToOne

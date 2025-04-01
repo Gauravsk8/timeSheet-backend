@@ -17,7 +17,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.sql.Date;
 import java.util.*;
 
@@ -31,7 +31,7 @@ public class Employee extends BaseEntity implements UserDetails {
     @ManyToMany(mappedBy = "")
     protected Set<Role> roles = new LinkedHashSet<>();
 
-    @Id
+
     @Column(nullable = false, unique = true, length = 50)
     private String employeeId;
 
