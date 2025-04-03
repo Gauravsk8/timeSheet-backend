@@ -5,10 +5,8 @@ import com.example.timesheet.Repository.Projection.EmployeeProjection;
 import com.example.timesheet.enums.EmployeePrivilege;
 import com.example.timesheet.framework.utils.SpringContext;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -33,7 +31,7 @@ import java.util.*;
 @NoArgsConstructor
 @Audited
 public class Employee extends BaseEntity implements UserDetails {
-    @ManyToMany(mappedBy = "")
+    @ManyToMany(mappedBy = "employees")
     protected Set<Role> roles = new LinkedHashSet<>();
 
 
@@ -55,8 +53,13 @@ public class Employee extends BaseEntity implements UserDetails {
 
     private Boolean enabled;
 
+
     @ManyToMany(mappedBy = "assignedEmployees")
     private Set<Project> projects = new LinkedHashSet<>();
+
+
+    @Column(name = "keycloak_id", unique = true)
+    private String keycloakId;
 
 
     //One-to-Many relationship with Project (one employee can manage multiple projects)

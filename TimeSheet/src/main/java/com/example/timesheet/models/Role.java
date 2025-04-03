@@ -18,6 +18,7 @@ import java.util.Set;
 @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
 public class Role extends  BaseEntity {
 
+    @Column(unique = true, nullable = false)
     private String name;
 
     @ManyToMany(fetch = FetchType.EAGER,cascade = {CascadeType.PERSIST})

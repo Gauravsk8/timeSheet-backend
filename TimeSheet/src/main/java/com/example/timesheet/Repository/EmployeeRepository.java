@@ -34,6 +34,8 @@ public interface EmployeeRepository extends BaseRepository<Employee, String>, Pa
     @Query("SELECT e.email FROM Employee e JOIN e.roles r WHERE r.name = :role")
     List<String> getEmployeeEmailsByRole(@Param("role") String role);
 
+    boolean existsByEmailAndDeletedIsFalse(String email);
+
 
 
 
