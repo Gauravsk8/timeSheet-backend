@@ -54,7 +54,7 @@ public class KeycloakService {
             String userId = extractUserIdFromResponse(response);
 
             // 6. Assign role
-            assignClientRole(userId, roleName, realmResource);
+            assignRealmRole(userId, roleName, realmResource);
 
             return userId;
         } catch (Exception e) {
@@ -132,33 +132,25 @@ public class KeycloakService {
         return location.substring(location.lastIndexOf('/') + 1);
     }
 
-    private void assignClientRole(String userId, String roleName, RealmResource realmResource) {
+    private void assignRealmRole(String userId, String roleName, RealmResource realmResource) {
         try {
-            // Get client
-            ClientRepresentation client = realmResource.clients()
-                    .findByClientId(clientId)
-                    .stream()
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Client not found in Keycloak: " + clientId));
-
-            // Get role
-            RoleRepresentation role = realmResource.clients()
-                    .get(client.getId())
-                    .roles()
+            // Get role from realm (not client)
+            RoleRepresentation role = realmResource.roles()
                     .get(roleName)
                     .toRepresentation();
 
-            // Assign role
+            // Assign realm role to user
             realmResource.users()
                     .get(userId)
                     .roles()
-                    .clientLevel(client.getId())
+                    .realmLevel()
                     .add(Collections.singletonList(role));
         } catch (Exception e) {
-            log.error("Error assigning role to user", e);
-            throw new RuntimeException("Failed to assign role: " + e.getMessage(), e);
+            log.error("Error assigning realm role to user", e);
+            throw new RuntimeException("Failed to assign realm role: " + e.getMessage(), e);
         }
     }
+
 
     // Additional helper methods can be added here
     public boolean isUserExists(String email) {

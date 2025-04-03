@@ -54,21 +54,18 @@ public class SecurityConfig {
         jwtConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
             Collection<GrantedAuthority> authorities = defaultConverter.convert(jwt);
 
-            // Extract client-specific roles
-            Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
-            if (resourceAccess != null) {
-                Map<String, Object> clientAccess = (Map<String, Object>) resourceAccess.get("Timesheet-client");
-                if (clientAccess != null) {
-                    List<String> clientRoles = (List<String>) clientAccess.get("roles");
-                    if (clientRoles != null) {
-                        clientRoles.forEach(role -> {
-                            // Convert all roles to uppercase
-                            String normalizedRole = "ROLE_" + role.toUpperCase();
-                            authorities.add(new SimpleGrantedAuthority(normalizedRole));
-                        });
-                    }
+            //Extract role from realm
+            Map<String, Object> realmAccess = jwt.getClaim("realm_access");
+            if (realmAccess != null) {
+                List<String> realmRoles = (List<String>) realmAccess.get("roles");
+                if (realmRoles != null) {
+                    realmRoles.forEach(role -> {
+                        String normalizedRole = "ROLE_" + role.toUpperCase();
+                        authorities.add(new SimpleGrantedAuthority(normalizedRole));
+                    });
                 }
             }
+
 
             return authorities;
         });

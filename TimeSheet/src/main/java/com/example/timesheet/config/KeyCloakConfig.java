@@ -5,6 +5,7 @@ import org.keycloak.admin.client.KeycloakBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 
 @Configuration
 public class KeyCloakConfig {
@@ -18,6 +19,8 @@ public class KeyCloakConfig {
     @Value("${keycloak.admin.client-id}")
     private String adminClientId;
 
+    @Value("${keycloak.admin.client-secret}")
+    private String adminClientSecret;
     @Value("${keycloak.admin.username}")
     private String adminUsername;
 
@@ -29,9 +32,9 @@ public class KeyCloakConfig {
         return KeycloakBuilder.builder()
                 .serverUrl(serverUrl)
                 .realm(adminRealm)
+                .grantType(AuthorizationGrantType.CLIENT_CREDENTIALS.getValue())
                 .clientId(adminClientId)
-                .username(adminUsername)
-                .password(adminPassword)
+                .clientSecret(adminClientSecret)
                 .build();
     }
 }
