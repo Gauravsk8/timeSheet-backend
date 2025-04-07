@@ -30,9 +30,11 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/public/**").permitAll()
-                        .requestMatchers("/api/employees/create").hasAuthority("ROLE_ADMIN") // Fixed role check
+                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll() // 🔥 allow preflight
+                        .requestMatchers("/api/employees/create").hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated()
                 );
+
 
         if (keycloakEnabled) {
             http.oauth2ResourceServer(oauth2 -> oauth2
