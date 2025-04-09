@@ -3,22 +3,17 @@ package com.example.timesheet.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Value("${keycloak.enabled:true}")
@@ -30,11 +25,10 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/public/**").permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll() // 🔥 allow preflight
-                        .requestMatchers("/api/employees/create").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/employees/create").authenticated()
                         .anyRequest().authenticated()
                 );
-
 
         if (keycloakEnabled) {
             http.oauth2ResourceServer(oauth2 -> oauth2
@@ -45,32 +39,14 @@ public class SecurityConfig {
         return http.build();
     }
 
-
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtGrantedAuthoritiesConverter defaultConverter = new JwtGrantedAuthoritiesConverter();
-        defaultConverter.setAuthorityPrefix("ROLE_");
-        defaultConverter.setAuthoritiesClaimName("realm_access.roles");
+        JwtGrantedAuthoritiesConverter converter = new JwtGrantedAuthoritiesConverter();
+        converter.setAuthorityPrefix("ROLE_");
+        converter.setAuthoritiesClaimName("realm_access.roles");
 
         JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
-        jwtConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
-            Collection<GrantedAuthority> authorities = defaultConverter.convert(jwt);
-
-            //Extract role from realm
-            Map<String, Object> realmAccess = jwt.getClaim("realm_access");
-            if (realmAccess != null) {
-                List<String> realmRoles = (List<String>) realmAccess.get("roles");
-                if (realmRoles != null) {
-                    realmRoles.forEach(role -> {
-                        String normalizedRole = "ROLE_" + role.toUpperCase();
-                        authorities.add(new SimpleGrantedAuthority(normalizedRole));
-                    });
-                }
-            }
-
-
-            return authorities;
-        });
+        jwtConverter.setJwtGrantedAuthoritiesConverter(converter);
 
         return jwtConverter;
     }
