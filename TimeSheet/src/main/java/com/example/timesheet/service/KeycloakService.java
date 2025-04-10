@@ -1,7 +1,7 @@
 package com.example.timesheet.service;
 
-import com.example.timesheet.exceptions.AlreadyExistsException;
-import com.example.timesheet.exceptions.InternalServerException;
+import com.example.timesheet.constants.errorCode;
+import com.example.timesheet.exceptions.TimeSheetException;
 import com.example.timesheet.models.Employee;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,7 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.example.timesheet.constants.TimesheetErrorMessages.*;
+import static com.example.timesheet.constants.errorMessage.*;
+
 
 @Service
 @RequiredArgsConstructor
@@ -61,8 +62,6 @@ public class KeycloakService {
             assignRealmRole(userId, roleName, realmResource);
 
             return userId;
-        } catch (AlreadyExistsException e) {
-           throw e;
         } finally {
             if (response != null) {
                 response.close();
@@ -74,7 +73,7 @@ public class KeycloakService {
         try {
             keycloakAdmin.realms().findAll();
         } catch (Exception e) {
-            throw new InternalServerException(KEYCLOAK_ADMIN_CONNECTION_FAILED, e);
+            throw new TimeSheetException(errorCode.INTERNAL_SERVER_ERROR, KEYCLOAK_ADMIN_CONNECTION_FAILED, e);
 
         }
     }
@@ -83,7 +82,10 @@ public class KeycloakService {
         List<UserRepresentation> existingUsers = realmResource.users()
                 .search(email, true); // exact match
         if (!existingUsers.isEmpty()) {
-            throw new AlreadyExistsException(String.format(KEYCLOAK_USER_ALREADY_EXISTS, email));
+            throw new TimeSheetException(
+                    errorCode.CONFLICT_ERROR,
+                    String.format(KEYCLOAK_USER_ALREADY_EXISTS, email)
+            );
 
         }
     }
@@ -121,15 +123,14 @@ public class KeycloakService {
                 try {
                     JsonNode errorNode = new ObjectMapper().readTree(errorBody);
                     String errorDetail = errorNode.path("error_description").asText();
-                    throw new InternalServerException(KEYCLOAK_USER_CREATION_FAILED + ": " + errorDetail, null);
+                    throw new TimeSheetException(errorCode.INTERNAL_SERVER_ERROR, KEYCLOAK_USER_CREATION_FAILED + ": " + errorDetail);
                 } catch (IOException e) {
-                    throw new InternalServerException(KEYCLOAK_USER_CREATION_FAILED +
-                            ": Failed to parse Keycloak error. Status: " + response.getStatus() +
-                            ", Response: " + errorBody, e);
+                    throw new TimeSheetException(errorCode.INTERNAL_SERVER_ERROR, KEYCLOAK_USER_CREATION_FAILED + ": Failed to parse Keycloak error...", e);
+
                 }
             } catch (Exception e) {
-                throw new InternalServerException(KEYCLOAK_USER_CREATION_FAILED +
-                        ": Failed to read error response from Keycloak", e);
+                throw new TimeSheetException(errorCode.INTERNAL_SERVER_ERROR, KEYCLOAK_USER_CREATION_FAILED + ": Failed to parse Keycloak error...", e);
+
             }
         }
     }
@@ -157,7 +158,7 @@ public class KeycloakService {
                     .add(Collections.singletonList(role));
         } catch (Exception e) {
             log.error("Error assigning realm role to user", e);
-            throw new RuntimeException("Failed to assign realm role: " + e.getMessage(), e);
+            throw new TimeSheetException(errorCode.ROLE_ASSIGNMENT_FAILED, ROLE_ASSIGNMENT_FAILED + ": " + e.getMessage(), e);
         }
     }
 
@@ -187,7 +188,7 @@ public class KeycloakService {
             userResource.resetPassword(credential);
         } catch (Exception e) {
             log.error("Error updating user password", e);
-            throw new RuntimeException("Failed to update user password", e);
+            throw new TimeSheetException(errorCode.INTERNAL_SERVER_ERROR, PASSWORD_UPDATE_FAILED, e);
         }
     }
 }

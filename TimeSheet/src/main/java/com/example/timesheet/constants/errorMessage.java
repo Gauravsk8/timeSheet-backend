@@ -1,8 +1,6 @@
 package com.example.timesheet.constants;
 
-public class TimesheetErrorMessages {
-
-    // === Authentication & Authorization ===
+public class errorMessage {
     public static final String MISSING_BEARER_TOKEN = "Missing Bearer token";
     public static final String UNAUTHORIZED_ACCESS = "User not authorized to access the resource";
     public static final String INVALID_USER_OR_TOKEN = "Invalid user or token";
@@ -33,5 +31,5 @@ public class TimesheetErrorMessages {
 
 
 
-    private TimesheetErrorMessages() {}
+    private errorMessage() {}
 }

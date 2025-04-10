@@ -2,6 +2,8 @@ package com.example.timesheet.service;
 
 import com.example.timesheet.Repository.EmployeeRepository;
 import com.example.timesheet.Repository.RoleRepository;
+import com.example.timesheet.constants.errorCode;
+import com.example.timesheet.constants.errorMessage;
 import com.example.timesheet.exceptions.*;
 import com.example.timesheet.models.Employee;
 import com.example.timesheet.models.Role;
@@ -13,7 +15,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 
-import static com.example.timesheet.constants.TimesheetErrorMessages.*;
+import static com.example.timesheet.constants.errorMessage.*;
+
 
 @Service
 @RequiredArgsConstructor
@@ -30,12 +33,12 @@ public class EmployeeService {
             // Check if employee already exists
             if (employeeRepository.existsByEmailAndDeletedIsFalse(employee.getEmail())) {
                 String message = String.format(EMPLOYEE_ALREADY_EXISTS, employee.getEmail());
-                throw new AlreadyExistsException(message);
+                throw new TimeSheetException(errorCode.CONFLICT_ERROR, message);
             }
 
             // Find role in database
             Role role = roleRepository.findByNameIgnoreCase(roleName)
-                    .orElseThrow(() -> new NotFoundException(String.format(ROLE_NOT_FOUND, roleName)));
+                    .orElseThrow(() -> new TimeSheetException(errorCode.NOT_FOUND_ERROR, String.format(errorMessage.ROLE_NOT_FOUND, roleName)));
 
             // Create user in Keycloak (password will be handled by Keycloak)
             String keycloakUserId = keycloakService.createUserWithRole(employee, role.getName());
@@ -51,19 +54,16 @@ public class EmployeeService {
             Employee savedEmployee = employeeRepository.save(employee);
 
             if (savedEmployee.getId() == null) {
-                throw new InternalServerException(EMPLOYEE_SAVE_FAILED, null);
+                throw new TimeSheetException(errorCode.INTERNAL_SERVER_ERROR, EMPLOYEE_SAVE_FAILED);
             }
 
             return String.format(EMPLOYEE_CREATION_SUCCESS, savedEmployee.getId());
 
-        } catch (AlreadyExistsException |
-                 NotFoundException |
-                 UnauthorizedException |
-                 ResourceNotFoundException e) {
+        } catch (TimeSheetException e) {
         throw e;
     } catch (Exception e) {
-        throw new InternalServerException(EMPLOYEE_CREATION_FAILED_LOG + ": " + e.getMessage(), e);
-    }
+            throw new TimeSheetException(errorCode.INTERNAL_SERVER_ERROR,
+                    EMPLOYEE_CREATION_FAILED_LOG + ": " + e.getMessage(), e);    }
 
 }
 }
