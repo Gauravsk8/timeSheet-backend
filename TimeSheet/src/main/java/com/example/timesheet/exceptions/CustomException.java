@@ -1,4 +1,4 @@
-package com.example.timesheet.utils.framewrork.exceptions;
+package com.example.timesheet.exceptions;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -26,3 +26,4 @@ public class CustomException extends RuntimeException {
         }
     }
 }
+

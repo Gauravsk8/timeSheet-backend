@@ -1,5 +1,6 @@
 package com.example.timesheet.service;
 
+import com.example.timesheet.exceptions.AlreadyExistsException;
 import com.example.timesheet.models.Employee;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -57,9 +58,8 @@ public class KeycloakService {
             assignRealmRole(userId, roleName, realmResource);
 
             return userId;
-        } catch (Exception e) {
-            log.error("Error in createUserWithRole", e);
-            throw new RuntimeException("Keycloak operation failed: " + e.getMessage(), e);
+        } catch (AlreadyExistsException e) {
+           throw e;
         } finally {
             if (response != null) {
                 response.close();

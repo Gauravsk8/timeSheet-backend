@@ -3,7 +3,7 @@ package com.example.timesheet.framework.service;
 import com.example.timesheet.Repository.BaseRepository;
 import com.example.timesheet.framework.web.utils.PageRequest;
 import com.example.timesheet.framework.web.utils.PageWrapper;
-import com.example.timesheet.utils.framewrork.exceptions.InvalidClientDataException;
+import com.example.timesheet.exceptions.InvalidClientDataException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -148,7 +148,7 @@ public abstract class BaseService extends OrganizationAndTenantAwareService {
         for (int i = 0; i < filterConditions.size() - 1; i += 2) {
             String logicalOperator = filterConditions.get(i + 1).asText();
             if (!logicalOperator.equalsIgnoreCase("and") && !(logicalOperator.equalsIgnoreCase("or"))) {
-                throw new com.example.timesheet.utils.framewrork.exceptions.InvalidClientDataException(
+                throw new com.example.timesheet.exceptions.InvalidClientDataException(
                         "Logical operators should be AND or OR case insensitive");
             }
             if (filterConditions.get(i + 2).isArray()) {

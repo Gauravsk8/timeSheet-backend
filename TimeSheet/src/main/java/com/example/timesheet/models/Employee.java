@@ -11,6 +11,8 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -35,21 +37,29 @@ public class Employee extends BaseEntity implements UserDetails {
     protected Set<Role> roles = new LinkedHashSet<>();
 
 
+    @NotBlank(message = "Employee ID is required")
     @Column(nullable = false, unique = true, length = 50)
     private String employeeId;
 
+    @NotBlank(message = "First name is required")
     @Column(columnDefinition = "text")
     private String firstName;
 
+    @NotBlank(message = "Last name is required")
     @Column(columnDefinition = "text")
     private String lastName;
 
-    private String email;
-
+    @NotBlank(message = "Phone number is required")
     private String phone;
 
+    @NotBlank(message = "Password is required")
     @JsonIgnore
     private String password;
+
+
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
+    private String email;
 
     private Boolean enabled;
 

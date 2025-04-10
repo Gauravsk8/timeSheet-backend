@@ -2,6 +2,7 @@ package com.example.timesheet.aop;
 
 import com.example.timesheet.annotations.RequiresKeycloakAuthorization;
 import com.example.timesheet.config.KeycloakAuthorizationEnforcer;
+import com.example.timesheet.exceptions.UnauthorizedException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.JoinPoint;
@@ -14,6 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
+
+import static com.example.timesheet.constants.TimesheetErrorMessages.MISSING_BEARER_TOKEN;
+import static com.example.timesheet.constants.TimesheetErrorMessages.UNAUTHORIZED_ACCESS;
 
 @Aspect
 @Component
@@ -70,14 +74,13 @@ public class AuthorizationAspect {
         }
 
         if (token == null) {
-            logger.warn("Authorization failed: missing Bearer token");
-            return ResponseEntity.status(401).body("Missing Bearer token");
+            throw new UnauthorizedException(MISSING_BEARER_TOKEN);
         }
 
         boolean authorized = enforcer.isAuthorized(token, resource, scope);
         if (!authorized) {
-            logger.warn("Authorization denied for resource: {}, scope: {}", resource, scope);
-            return ResponseEntity.status(403).body("Access denied by Keycloak policy");
+            throw new SecurityException(UNAUTHORIZED_ACCESS);
+
         }
 
         logger.info("Authorization granted. Proceeding with method: {}", joinPoint.getSignature());

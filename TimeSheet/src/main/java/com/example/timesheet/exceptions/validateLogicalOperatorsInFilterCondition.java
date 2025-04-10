@@ -1,4 +1,4 @@
-package com.example.timesheet.utils.framewrork.exceptions;
+package com.example.timesheet.exceptions;
 
 public class validateLogicalOperatorsInFilterCondition {
 }

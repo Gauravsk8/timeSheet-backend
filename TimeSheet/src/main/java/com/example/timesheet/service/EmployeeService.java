@@ -2,6 +2,9 @@ package com.example.timesheet.service;
 
 import com.example.timesheet.Repository.EmployeeRepository;
 import com.example.timesheet.Repository.RoleRepository;
+import com.example.timesheet.exceptions.AlreadyExistsException;
+import com.example.timesheet.exceptions.InternalServerException;
+import com.example.timesheet.exceptions.NotFoundException;
 import com.example.timesheet.models.Employee;
 import com.example.timesheet.models.Role;
 import jakarta.transaction.Transactional;
@@ -11,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+
+import static com.example.timesheet.constants.TimesheetErrorMessages.*;
 
 @Service
 @RequiredArgsConstructor
@@ -26,12 +31,13 @@ public class EmployeeService {
         try {
             // Check if employee already exists
             if (employeeRepository.existsByEmailAndDeletedIsFalse(employee.getEmail())) {
-                throw new RuntimeException("Employee with email " + employee.getEmail() + " already exists");
+                String message = String.format(EMPLOYEE_ALREADY_EXISTS, employee.getEmail());
+                throw new AlreadyExistsException(message);
             }
 
             // Find role in database
             Role role = roleRepository.findByNameIgnoreCase(roleName)
-                    .orElseThrow(() -> new RuntimeException("Role '" + roleName + "' not found"));
+                    .orElseThrow(() -> new NotFoundException(String.format(ROLE_NOT_FOUND, roleName)));
 
             // Create user in Keycloak (password will be handled by Keycloak)
             String keycloakUserId = keycloakService.createUserWithRole(employee, role.getName());
@@ -47,13 +53,14 @@ public class EmployeeService {
             Employee savedEmployee = employeeRepository.save(employee);
 
             if (savedEmployee.getId() == null) {
-                throw new RuntimeException("Failed to save employee to database");
+                throw new InternalServerException(EMPLOYEE_SAVE_FAILED, null);
             }
 
-            return "Employee created successfully with ID: " + savedEmployee.getId();
+            return String.format(EMPLOYEE_CREATION_SUCCESS, savedEmployee.getId());
+
         } catch (Exception e) {
-            log.error("Error creating employee", e);
-            throw new RuntimeException("Employee creation failed: " + e.getMessage(), e);
+            throw new InternalServerException(EMPLOYEE_CREATION_FAILED_LOG + ": " + e.getMessage(), e);
+
         }
     }
 }

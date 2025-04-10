@@ -1,4 +1,4 @@
-package com.example.timesheet.utils.framewrork.exceptions;
+package com.example.timesheet.exceptions;
 
 
 import lombok.extern.slf4j.Slf4j;
