@@ -2,9 +2,7 @@ package com.example.timesheet.service;
 
 import com.example.timesheet.Repository.EmployeeRepository;
 import com.example.timesheet.Repository.RoleRepository;
-import com.example.timesheet.exceptions.AlreadyExistsException;
-import com.example.timesheet.exceptions.InternalServerException;
-import com.example.timesheet.exceptions.NotFoundException;
+import com.example.timesheet.exceptions.*;
 import com.example.timesheet.models.Employee;
 import com.example.timesheet.models.Role;
 import jakarta.transaction.Transactional;
@@ -58,9 +56,14 @@ public class EmployeeService {
 
             return String.format(EMPLOYEE_CREATION_SUCCESS, savedEmployee.getId());
 
-        } catch (Exception e) {
-            throw new InternalServerException(EMPLOYEE_CREATION_FAILED_LOG + ": " + e.getMessage(), e);
-
-        }
+        } catch (AlreadyExistsException |
+                 NotFoundException |
+                 UnauthorizedException |
+                 ResourceNotFoundException e) {
+        throw e;
+    } catch (Exception e) {
+        throw new InternalServerException(EMPLOYEE_CREATION_FAILED_LOG + ": " + e.getMessage(), e);
     }
+
+}
 }

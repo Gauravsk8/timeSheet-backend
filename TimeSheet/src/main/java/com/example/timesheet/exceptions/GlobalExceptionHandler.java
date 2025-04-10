@@ -12,6 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @RestControllerAdvice
@@ -43,19 +46,20 @@ public class GlobalExceptionHandler {
 
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
-        String field = Objects.requireNonNull(ex.getBindingResult().getFieldError()).getField();
-        String msg = String.format(TimesheetErrorMessages.VALIDATION_FAILED, field);
+    public ResponseEntity<List<ErrorResponse>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        List<ErrorResponse> errorResponses = ex.getBindingResult().getFieldErrors().stream()
+                .map(error -> ErrorResponse.builder()
+                        .error_code(HttpExceptionConstants.VALIDATION_ERROR)
+                        .message(error.getDefaultMessage())
+                        .property(error.getField())
+                        .build())
+                .toList();
 
-        ErrorResponse response = ErrorResponse.builder()
-                .error_code(HttpExceptionConstants.VALIDATION_ERROR)
-                .message(msg)
-                .property(field)
-                .build();
-
-        log.warn("Validation error: {}", response);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        log.warn("Validation errors: {}", errorResponses);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponses);
     }
+
+
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex) {

@@ -1,6 +1,7 @@
 package com.example.timesheet.service;
 
 import com.example.timesheet.exceptions.AlreadyExistsException;
+import com.example.timesheet.exceptions.InternalServerException;
 import com.example.timesheet.models.Employee;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,6 +20,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.example.timesheet.constants.TimesheetErrorMessages.*;
 
 @Service
 @RequiredArgsConstructor
@@ -71,7 +74,8 @@ public class KeycloakService {
         try {
             keycloakAdmin.realms().findAll();
         } catch (Exception e) {
-            throw new RuntimeException("Failed to access Keycloak as admin. Check admin credentials.", e);
+            throw new InternalServerException(KEYCLOAK_ADMIN_CONNECTION_FAILED, e);
+
         }
     }
 
@@ -79,7 +83,8 @@ public class KeycloakService {
         List<UserRepresentation> existingUsers = realmResource.users()
                 .search(email, true); // exact match
         if (!existingUsers.isEmpty()) {
-            throw new RuntimeException("User with email " + email + " already exists in Keycloak");
+            throw new AlreadyExistsException(String.format(KEYCLOAK_USER_ALREADY_EXISTS, email));
+
         }
     }
 
@@ -116,16 +121,21 @@ public class KeycloakService {
                 try {
                     JsonNode errorNode = new ObjectMapper().readTree(errorBody);
                     String errorDetail = errorNode.path("error_description").asText();
-                    throw new RuntimeException("Keycloak error: " + errorDetail);
+                    throw new InternalServerException(KEYCLOAK_USER_CREATION_FAILED + ": " + errorDetail, null);
                 } catch (IOException e) {
-                    throw new RuntimeException("Failed to create user in Keycloak. Status: " +
-                            response.getStatus() + ", Response: " + errorBody);
+                    throw new InternalServerException(KEYCLOAK_USER_CREATION_FAILED +
+                            ": Failed to parse Keycloak error. Status: " + response.getStatus() +
+                            ", Response: " + errorBody, e);
                 }
             } catch (Exception e) {
-                throw new RuntimeException("Failed to read error response from Keycloak", e);
+                throw new InternalServerException(KEYCLOAK_USER_CREATION_FAILED +
+                        ": Failed to read error response from Keycloak", e);
             }
         }
     }
+
+
+
 
     private String extractUserIdFromResponse(Response response) {
         String location = response.getLocation().toString();

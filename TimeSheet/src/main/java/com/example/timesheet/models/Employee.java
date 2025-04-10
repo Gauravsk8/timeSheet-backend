@@ -5,6 +5,7 @@ import com.example.timesheet.Repository.Projection.EmployeeProjection;
 import com.example.timesheet.enums.EmployeePrivilege;
 import com.example.timesheet.framework.utils.SpringContext;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToMany;
@@ -53,7 +54,7 @@ public class Employee extends BaseEntity implements UserDetails {
     private String phone;
 
     @NotBlank(message = "Password is required")
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
 
