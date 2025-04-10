@@ -1,5 +1,6 @@
 package com.example.timesheet.controller;
 
+import com.example.timesheet.annotations.RequiresKeycloakAuthorization;
 import com.example.timesheet.config.KeycloakAuthorizationEnforcer;
 import com.example.timesheet.models.Employee;
 import com.example.timesheet.service.EmployeeService;
@@ -18,23 +19,16 @@ public class EmployeeController {
     private final KeycloakAuthorizationEnforcer enforcer;
 
     @PostMapping("/create")
+    @RequiresKeycloakAuthorization(resource = "employee", scope = "testscope")
     public ResponseEntity<?> createEmployee(
             @RequestHeader("Authorization") String token,
             @Valid @RequestBody Employee employee,
             @RequestParam String role) {
-        try {
-            boolean allowed = enforcer.isAuthorized(token, "employee",  "testscope");
-            if (!allowed) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied by Keycloak policy");
-            }
 
-            String result = employeeService.createEmployee(employee, role);
-            return ResponseEntity.status(HttpStatus.CREATED).body(result);
+        String result = employeeService.createEmployee(employee, role);
 
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Failed to create employee: " + e.getMessage());
-        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
+
 }
+

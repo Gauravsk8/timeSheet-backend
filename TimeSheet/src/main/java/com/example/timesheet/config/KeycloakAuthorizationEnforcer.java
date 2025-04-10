@@ -30,7 +30,7 @@ public class KeycloakAuthorizationEnforcer {
     public boolean isAuthorized(String token, String resource, String scope) {
         String url = keycloakBaseUrl + "/realms/" + realm + "/protocol/openid-connect/token";
 
-        // Step 1: Get RPT token (Permission ticket)
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         headers.setBearerAuth(token.replace("Bearer ", ""));
