@@ -28,7 +28,7 @@ public class errorMessage {
     public static final String USER_ID_EXTRACTION_FAILED = "Failed to extract user ID from Keycloak response";
     public static final String KEYCLOAK_RESPONSE_PARSING_FAILED = "Failed to parse Keycloak response";
     public static final String PASSWORD_UPDATE_FAILED = "Failed to update Keycloak user password";
-
+    public static final String MALFORMED_BEARER_TOKEN = "Access Token is Expired or Malformed";
 
 
     private errorMessage() {}

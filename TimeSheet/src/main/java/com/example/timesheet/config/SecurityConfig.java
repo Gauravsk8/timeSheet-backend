@@ -1,5 +1,7 @@
 package com.example.timesheet.config;
 
+import com.example.timesheet.security.CustomAccessDeniedHandler;
+import com.example.timesheet.security.CustomEntryPoint;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +18,15 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    private final CustomEntryPoint customEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
+
+    public SecurityConfig(CustomEntryPoint customEntryPoint,
+                          CustomAccessDeniedHandler customAccessDeniedHandler) {
+        this.customEntryPoint = customEntryPoint;
+        this.customAccessDeniedHandler = customAccessDeniedHandler;
+    }
+
     @Value("${keycloak.enabled:true}")
     private boolean keycloakEnabled;
 
@@ -28,12 +39,18 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/employees/create").authenticated()
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(exception -> exception
+                    .authenticationEntryPoint(customEntryPoint)
+                    .accessDeniedHandler(customAccessDeniedHandler)
                 );
 
         if (keycloakEnabled) {
             http.oauth2ResourceServer(oauth2 -> oauth2
+                    .authenticationEntryPoint(customEntryPoint)
                     .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
             );
+
         }
 
         return http.build();

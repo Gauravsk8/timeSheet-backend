@@ -73,7 +73,7 @@ public class KeycloakService {
         try {
             keycloakAdmin.realms().findAll();
         } catch (Exception e) {
-            throw new TimeSheetException(errorCode.INTERNAL_SERVER_ERROR, KEYCLOAK_ADMIN_CONNECTION_FAILED, e);
+            throw new TimeSheetException(errorCode.KEYCLOAK_CONNECTION_ERROR, KEYCLOAK_ADMIN_CONNECTION_FAILED, e);
 
         }
     }
@@ -111,26 +111,42 @@ public class KeycloakService {
     }
 
     private void handleCreateUserResponse(Response response) {
-        if (response.getStatus() != Response.Status.CREATED.getStatusCode()) {
+        int status = response.getStatus();
+
+        if (status != Response.Status.CREATED.getStatusCode()) {
+            String errorBody = null;
+
             try {
-                String errorBody = response.readEntity(String.class);
-                log.error("Keycloak create user failed. Status: {}, Headers: {}, Body: {}",
-                        response.getStatus(),
+                errorBody = response.readEntity(String.class);
+
+                log.error("Keycloak user creation failed. Status: {}, Headers: {}, Body: {}",
+                        status,
                         response.getHeaders(),
                         errorBody);
 
-                // Try to parse JSON error for more details
+                // Try to parse error details from JSON response (if available)
                 try {
                     JsonNode errorNode = new ObjectMapper().readTree(errorBody);
-                    String errorDetail = errorNode.path("error_description").asText();
-                    throw new TimeSheetException(errorCode.INTERNAL_SERVER_ERROR, KEYCLOAK_USER_CREATION_FAILED + ": " + errorDetail);
-                } catch (IOException e) {
-                    throw new TimeSheetException(errorCode.INTERNAL_SERVER_ERROR, KEYCLOAK_USER_CREATION_FAILED + ": Failed to parse Keycloak error...", e);
+                    String errorDetail = errorNode.path("error_description").asText(null);
 
+                    if (errorDetail != null && !errorDetail.isEmpty()) {
+                        throw new TimeSheetException(errorCode.KEYCLOAK_USER_CREATION_FAILED,
+                                KEYCLOAK_USER_CREATION_FAILED + ": " + errorDetail);
+                    } else {
+                        throw new TimeSheetException(errorCode.KEYCLOAK_USER_CREATION_FAILED,
+                                KEYCLOAK_USER_CREATION_FAILED + ": " + errorBody);
+                    }
+
+                } catch (IOException parseException) {
+                    // Parsing failed, fallback to raw body
+                    throw new TimeSheetException(errorCode.KEYCLOAK_USER_CREATION_FAILED,
+                            KEYCLOAK_USER_CREATION_FAILED + ": Unable to parse error body: " + errorBody, parseException);
                 }
-            } catch (Exception e) {
-                throw new TimeSheetException(errorCode.INTERNAL_SERVER_ERROR, KEYCLOAK_USER_CREATION_FAILED + ": Failed to parse Keycloak error...", e);
 
+            } catch (Exception e) {
+                // Catch any outer-level issue like response reading failure
+                throw new TimeSheetException(errorCode.KEYCLOAK_USER_CREATION_FAILED,
+                        KEYCLOAK_USER_CREATION_FAILED + ": Unexpected error while reading Keycloak response", e);
             }
         }
     }
@@ -170,8 +186,8 @@ public class KeycloakService {
             List<UserRepresentation> users = realmResource.users().search(email, true);
             return !users.isEmpty();
         } catch (Exception e) {
-            log.error("Error checking if user exists", e);
-            return false;
+            throw new TimeSheetException(errorCode.KEYCLOAK_CONNECTION_ERROR, USER_LOOKUP_FAILED + ": " + e.getMessage(), e);
+
         }
     }
 
@@ -188,7 +204,7 @@ public class KeycloakService {
             userResource.resetPassword(credential);
         } catch (Exception e) {
             log.error("Error updating user password", e);
-            throw new TimeSheetException(errorCode.INTERNAL_SERVER_ERROR, PASSWORD_UPDATE_FAILED, e);
+            throw new TimeSheetException(errorCode.KEYCLOAK_CONNECTION_ERROR, PASSWORD_UPDATE_FAILED + ": " + e.getMessage(), e);
         }
     }
 }
